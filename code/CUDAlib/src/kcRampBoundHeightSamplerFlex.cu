@@ -22,7 +22,7 @@
 //rough summing kernel (does not need to be efficient)
 __global__ void kcSumLangevinVars(KC_FP_TYPE * der, KC_FP_TYPE * der_sum, KC_FP_TYPE * G, KC_FP_TYPE * G_sum, KC_FP_TYPE * ll, KC_FP_TYPE * ll_sum, int * mBlkIdx, int NT, KC_FP_TYPE gPrior, KC_FP_TYPE lPrior) {
     int nsum = blockIdx.x*blockDim.x+threadIdx.x;
-    
+
     if(nsum == 0) {
         der_sum[0] = lPrior;
         for(int idx = 0; idx < NT; idx++) {
@@ -31,7 +31,7 @@ __global__ void kcSumLangevinVars(KC_FP_TYPE * der, KC_FP_TYPE * der_sum, KC_FP_
     }
     else if(nsum == 1) {
         G_sum[0] = gPrior;
-                
+
         for(int idx = 0; idx < NT; idx++) {
             G_sum[0] -= G[idx];
         }
@@ -43,8 +43,8 @@ __global__ void kcSumLangevinVars(KC_FP_TYPE * der, KC_FP_TYPE * der_sum, KC_FP_
             ll_sum[0] += ll[idx];
         }
     }
-    
-    
+
+
 }
 
 
@@ -68,7 +68,7 @@ __device__ KC_FP_TYPE dh(KC_FP_TYPE lambda, KC_FP_TYPE gamma, KC_FP_TYPE dt, KC_
     }
     else {
         return KC_MIN(dt*lambda*KC_EXP(gamma*lambda),KC_MAXN);
-    }    
+    }
 }
 
 
@@ -85,10 +85,10 @@ __global__ void kcBoundaryLikelihoodTrial(KC_FP_TYPE * y, KC_FP_TYPE * lambdas, 
         for(int ii = mBlkIdx[idx]; ii < mBlkIdx[idx+1]; ii++)  {
 
             KC_FP_TYPE trueLambda = fmin(1, ((ii-mBlkIdx[idx]) < crossingTimes[idx])?lambdas[ii]:1);
-            
+
             KC_FP_TYPE fr    = KC_MAX(KC_MINN,h(trueLambda,g,1,modelInd));
             llSum[idx] += y[ii]*(KC_LOG(fr)+KC_LOG(dt)) - dt*fr -lgamma(y[ii]+1);
-            
+
             KC_FP_TYPE dr = dh(trueLambda,g,1,modelInd);
 
             trialSum[idx] += (y[ii]/fr-dt)*dr;
@@ -96,7 +96,7 @@ __global__ void kcBoundaryLikelihoodTrial(KC_FP_TYPE * y, KC_FP_TYPE * lambdas, 
         }
     }
 }
-        
+
 //Computes the the log probability of a set of spike trains under the ramping model given a fixed set of latent variable
 // as a function of \gamma (the bound height) along with first/second derivates w.r.t. \gamma
 //args
@@ -126,7 +126,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     int * trIdx = kcGetArrayDataInt(prhs[3]);
     unsigned int NT = kcGetArrayNumEl(prhs[3])-1;
     KC_FP_TYPE  dt     = mxGetScalar(prhs[5]);
-    
+
     //loads gamma and latent variables
     KC_FP_TYPE  g      = mxGetScalar(prhs[4]);
     KC_FP_TYPE * lambda = kcGetArrayData(prhs[0]);
@@ -142,19 +142,19 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
 
     //sets up space for computations on GPU
     KC_FP_TYPE * der_log_p_y;
-    checkCudaErrors(cudaMalloc((void**)&der_log_p_y,sizeof(KC_FP_TYPE)*(NT)));    
+    checkCudaErrors(cudaMalloc((void**)&der_log_p_y,sizeof(KC_FP_TYPE)*(NT)));
     KC_FP_TYPE * der_log_p_y_sum;
-    checkCudaErrors(cudaMalloc((void**)&der_log_p_y_sum,sizeof(KC_FP_TYPE)*(1)));    
+    checkCudaErrors(cudaMalloc((void**)&der_log_p_y_sum,sizeof(KC_FP_TYPE)*(1)));
 
     KC_FP_TYPE * log_p_y;
-    checkCudaErrors(cudaMalloc((void**)&log_p_y,sizeof(KC_FP_TYPE)*NT));    
+    checkCudaErrors(cudaMalloc((void**)&log_p_y,sizeof(KC_FP_TYPE)*NT));
     KC_FP_TYPE * log_p_y_sum;
-    checkCudaErrors(cudaMalloc((void**)&log_p_y_sum,sizeof(KC_FP_TYPE)*1));    
+    checkCudaErrors(cudaMalloc((void**)&log_p_y_sum,sizeof(KC_FP_TYPE)*1));
 
     KC_FP_TYPE * G_log_p_y1;
-    checkCudaErrors(cudaMalloc((void**)&G_log_p_y1,sizeof(KC_FP_TYPE)*(NT)));    
+    checkCudaErrors(cudaMalloc((void**)&G_log_p_y1,sizeof(KC_FP_TYPE)*(NT)));
     KC_FP_TYPE * G_log_p_y_sum;
-    checkCudaErrors(cudaMalloc((void**)&G_log_p_y_sum,sizeof(KC_FP_TYPE)*(1)*(1)));        
+    checkCudaErrors(cudaMalloc((void**)&G_log_p_y_sum,sizeof(KC_FP_TYPE)*(1)*(1)));
 
     //sets up CUDA variables
     int blockSize = 2;
@@ -163,14 +163,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     //gets each trials likelihood + derivates of gamma
     kcBoundaryLikelihoodTrial<<< numBlocks,blockSize >>>(y,lambda,crossingTimes,trIdx,g,dt, NT,log_p_y,der_log_p_y,G_log_p_y1,modelInd);
     checkCudaErrors(cudaDeviceSynchronize());
-    
+
     //sums up all the trials' likelihoods and derivatives with respect to gamma
     int nBlocksC = 3;
     int blockSizeC = 1;
     kcSumLangevinVars <<< nBlocksC,blockSizeC >>> (der_log_p_y, der_log_p_y_sum, G_log_p_y1, G_log_p_y_sum, log_p_y, log_p_y_sum,  trIdx, NT, gPrior, lPrior);
     checkCudaErrors(cudaDeviceSynchronize());
 
-    
+
     //pushes answers back to MATLAB
     if(nlhs > 0) {
         plhs[0] = mxCreateNumericMatrix(1,1,KC_FP_TYPE_MATLAB,mxREAL);
@@ -184,7 +184,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
         plhs[2] = mxCreateNumericMatrix(1,1,KC_FP_TYPE_MATLAB,mxREAL);
         checkCudaErrors(cudaMemcpy((KC_FP_TYPE*)mxGetPr(plhs[2]),G_log_p_y_sum,sizeof(KC_FP_TYPE)*(1)*(1),cudaMemcpyDeviceToHost));
     }
-    
+
     //clears up GPU variables
     checkCudaErrors(cudaDeviceSynchronize());
     checkCudaErrors(cudaFree(log_p_y));

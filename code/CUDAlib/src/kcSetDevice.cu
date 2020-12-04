@@ -12,7 +12,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
         ce = cudaSetDevice(KC_GPU_DEVICE);
     }
     else {
-        ce = cudaSetDevice((int)mxGetScalar(prhs[0]));
+        //ce = cudaSetDevice((int)mxGetScalar(prhs[0]));
+        ce = cudaSetDevice(currentDevice);
     }
     if(ce != cudaSuccess) {
         mexPrintf("Error selecting device ");

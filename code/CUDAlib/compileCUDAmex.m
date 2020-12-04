@@ -8,7 +8,7 @@ if(nargin > 0)
     
     extraArgs = '-Xcompiler -fpic';
 
-    compileCUDAlibMex = @(fName) system(['cd ' objDir '; ' CUDAdirectory '/bin/nvcc -c -shared -m64 --gpu-architecture ' GPUArchitecture ' ' extraArgs ' -I' sourceDir ' -I' CUDASamplesdirectory '/common/inc/  -I' MATLABdirectory 'extern/include ' sourceDir '/' fName '.cu' ]); %mv ' fName '.o ' objDir '/' fName '.o'
+    compileCUDAlibMex = @(fName) system(['cd ' objDir '; ' CUDAdirectory '/bin/nvcc -c -shared -m64 --gpu-architecture --expt-relaxed-constexpr ' GPUArchitecture ' ' extraArgs ' -I' sourceDir ' -I' CUDASamplesdirectory '/common/inc/  -I' MATLABdirectory 'extern/include ' sourceDir '/' fName '.cu' ]); %mv ' fName '.o ' objDir '/' fName '.o'
 
 
     if(~isdir(objDir))

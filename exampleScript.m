@@ -41,7 +41,7 @@ if(~exist('./Samples/','file'))
 end
 
 %% sets which GPU to use
-kcSetDevice(1); %in case you have more than one GPU and want to select (0 is the default)
+kcSetDevice(0); %in case you have more than one GPU and want to select (0 is the default)
 
 %% sets a temporary folder to use for saving latent variables without hogging all the memory (this part of the code uses an ugly global variable)
 global DataFolder 

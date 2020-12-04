@@ -84,7 +84,7 @@ __global__ void kcBoundaryLikelihoodTrial(KC_FP_TYPE * y, KC_FP_TYPE * lambdas, 
 
         for(int ii = mBlkIdx[idx]; ii < mBlkIdx[idx+1]; ii++)  {
 
-            KC_FP_TYPE trueLambda = fmin(1, ((ii-mBlkIdx[idx]) < crossingTimes[idx])?(real)lambdas[ii]:1);
+            KC_FP_TYPE trueLambda = fmin(1, ((ii-mBlkIdx[idx]) < crossingTimes[idx])?lambdas[ii]:1);
 
             KC_FP_TYPE fr    = KC_MAX(KC_MINN,h(trueLambda,g,1,modelInd));
             llSum[idx] += y[ii]*(KC_LOG(fr)+KC_LOG(dt)) - dt*fr -lgamma(y[ii]+1);

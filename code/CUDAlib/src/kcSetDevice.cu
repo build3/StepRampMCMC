@@ -8,7 +8,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     
     for(int deviceIndex = 0; deviceIndex < devicesCount; ++deviceIndex)
     {
-        cudaSetDevice(deviceIndex);   
+        ce = cudaSetDevice(deviceIndex);   
         if(ce == cudaSuccess) {
             mexPrintf("Selected CUDA device (%d)\n", deviceIndex);
             return;

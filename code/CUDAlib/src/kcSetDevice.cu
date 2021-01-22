@@ -13,7 +13,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
             mexPrintf("Selected CUDA device %d\n", deviceIndex);
             return;
         }else{
-            mexPrintf("Error selecting device %d", deviceIndex);
+            mexPrintf("Error selecting device %d ", deviceIndex);
             mexPrintf(cudaGetErrorString(ce));
             mexPrintf(" (%d)\n", (int)ce);
             mexErrMsgTxt("CUDA Errors");

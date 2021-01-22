@@ -316,7 +316,7 @@ for ss = 2:totalSamples
         if(exist('paramPlotFigure','var') && ~isempty(paramPlotFigure) && ishandle(paramPlotFigure))
             set(0,'CurrentFigure',paramPlotFigure);
         else
-            paramPlotFigure = figure(200);
+            paramPlotFigure = figure(200, 'Visible', 'off');
         end
         
         clf
@@ -386,11 +386,11 @@ for ss = 2:totalSamples
 %             plot([1 totalSamples],[1.0 1.0]*timeSeries.trueParams.gamma,'--')
 %         end
         hold off
-        
+        print('-dpdf', '-r300', '200pdf');
         if(exist('latentStateFigure','var') && ~isempty(latentStateFigure) && ishandle(latentStateFigure))
             set(0,'CurrentFigure',latentStateFigure);
         else
-            latentStateFigure = figure(201);
+            latentStateFigure = figure(201, 'Visible', 'off');
         end
         clf
         hold on
@@ -427,6 +427,7 @@ for ss = 2:totalSamples
         
         
         drawnow;
+        print('-dpdf', '-r300', '201pdf');
         
     end
     

@@ -115,28 +115,29 @@ __global__ void kcBoundaryLikelihoodTrial(KC_FP_TYPE * y, KC_FP_TYPE * lambdas, 
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     cudaError_t ce;
-
+    mexPrintf("NRHS is %d\n", nrhs);
+    mexPrintf("Starting height sampler mexfunction ");
     //loads up trial information
     unsigned int TT = kcGetArrayNumEl(prhs[0]);
     int * crossingTimes = kcGetArrayDataInt(prhs[1]);
     KC_FP_TYPE * y      = kcGetArrayData(prhs[2],TT);
-
+    mexPrintf("Loaded trial information from input arrays");
     int * trIdx = kcGetArrayDataInt(prhs[3]);
     unsigned int NT = kcGetArrayNumEl(prhs[3])-1;
     KC_FP_TYPE  dt     = mxGetScalar(prhs[5]);
-    
+    mexPrintf("Loaded scalars");
     //loads gamma and latent variables
     KC_FP_TYPE  g      = mxGetScalar(prhs[4]);
     KC_FP_TYPE * lambda = kcGetArrayData(prhs[0]);
-
+    mexPrintf("gamma and latent ");
     //loads log prior probability of the gamma value
     if(mxGetClassID(prhs[6]) != KC_FP_TYPE_MATLAB) {
         mexErrMsgTxt("Prior matrix input wrong floating point type (kcLangevinStep)!");
     }
-
+    mexPrintf("about to get scalars");
     KC_FP_TYPE gPrior = mxGetScalar(prhs[6]);
     KC_FP_TYPE lPrior = mxGetScalar(prhs[7]);
-
+    mexPrintf("got scalars ");
     //sets up space for computations on GPU
     KC_FP_TYPE * der_log_p_y;
     checkCudaErrors(cudaMalloc((void**)&der_log_p_y,sizeof(KC_FP_TYPE)*(NT)));    

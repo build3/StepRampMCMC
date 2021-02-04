@@ -277,6 +277,7 @@ for ss = 2:totalSamples
     gamma_b = params.rampPrior.gammaBeta;
     
     G_prior = -(gamma_a-1)/RampSamples.gammas(ss-1)^2; %2nd derivative of log prior
+    der_log_prior = (gamma_a-1)/RampSamples.gammas(ss-1) - gamma_b;
     [log_p_lambda, der_log_p_y, G_log_p_y] = kcRampBoundHeightSampler(gpu_lambdaN,gpu_auxThresholdN,gpu_y,gpu_trIndex,RampSamples.gammas(ss-1),timeSeries.delta_t,G_prior);
     der_log_p_y = der_log_p_y + (gamma_a-1)/RampSamples.gammas(ss-1) - gamma_b; %adding derivative of log prior to derivative of log likelihood
     p_mu = RampSamples.gammas(ss-1) + 1/2*g_delta^2*(G_log_p_y\der_log_p_y);
@@ -286,6 +287,7 @@ for ss = 2:totalSamples
     log_q_star = -1/2*log(2*pi*p_sig) - 1/(2*p_sig)*(gamma_star - p_mu)^2;
     
     G_prior_star = -(gamma_a-1)/gamma_star^2; %2nd derivative of log prior
+    der_log_prior_star = (gamma_a-1)/gamma_star - gamma_b; 
     [log_p_lambda_star, der_log_p_y_star, G_log_p_y_star] = kcRampBoundHeightSampler(gpu_lambdaN,gpu_auxThresholdN,gpu_y,gpu_trIndex,gamma_star,timeSeries.delta_t,G_prior_star);
     der_log_p_y_star = der_log_p_y_star + (gamma_a-1)/gamma_star - gamma_b; %adding derivative of log prior to derivative of log likelihood
     p_mu_star  = gamma_star + 1/2*g_delta^2*(G_log_p_y_star\der_log_p_y_star);

@@ -5,10 +5,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
     int devicesCount;
     cudaGetDeviceCount(&devicesCount);
     cudaError_t ce;
-    
+    mexPrintf("There are %d device(s)\n", devicesCount);    
     for(int deviceIndex = 0; deviceIndex < devicesCount; ++deviceIndex)
     {
-        ce = cudaSetDevice(deviceIndex);   
+        ce = cudaSetDevice(0);   
         if(ce == cudaSuccess) {
             mexPrintf("Selected CUDA device %d\n", deviceIndex);
             return;
@@ -16,8 +16,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])  {
             mexPrintf("Error selecting device %d ", deviceIndex);
             mexPrintf(cudaGetErrorString(ce));
             mexPrintf(" (%d)\n", (int)ce);
-            mexErrMsgTxt("CUDA Errors");
-
         }
     }
 

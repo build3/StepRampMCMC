@@ -278,7 +278,7 @@ for ss = 2:totalSamples
     
     G_prior = -(gamma_a-1)/RampSamples.gammas(ss-1)^2; %2nd derivative of log prior
     der_log_prior = (gamma_a-1)/RampSamples.gammas(ss-1) - gamma_b;
-    [log_p_lambda, der_log_p_y, G_log_p_y] = kcRampBoundHeightSampler(gpu_lambdaN,gpu_auxThresholdN,gpu_y,gpu_trIndex,RampSamples.gammas(ss-1),timeSeries.delta_t,G_prior);
+    [log_p_lambda, der_log_p_y, G_log_p_y] = kcRampBoundHeightSampler(gpu_lambdaN,gpu_auxThresholdN,gpu_y,gpu_trIndex,RampSamples.gammas(ss-1),timeSeries.delta_t,G_prior,der_log_prior);
     der_log_p_y = der_log_p_y + (gamma_a-1)/RampSamples.gammas(ss-1) - gamma_b; %adding derivative of log prior to derivative of log likelihood
     p_mu = RampSamples.gammas(ss-1) + 1/2*g_delta^2*(G_log_p_y\der_log_p_y);
 
@@ -288,7 +288,7 @@ for ss = 2:totalSamples
     
     G_prior_star = -(gamma_a-1)/gamma_star^2; %2nd derivative of log prior
     der_log_prior_star = (gamma_a-1)/gamma_star - gamma_b; 
-    [log_p_lambda_star, der_log_p_y_star, G_log_p_y_star] = kcRampBoundHeightSampler(gpu_lambdaN,gpu_auxThresholdN,gpu_y,gpu_trIndex,gamma_star,timeSeries.delta_t,G_prior_star);
+    [log_p_lambda_star, der_log_p_y_star, G_log_p_y_star] = kcRampBoundHeightSampler(gpu_lambdaN,gpu_auxThresholdN,gpu_y,gpu_trIndex,gamma_star,timeSeries.delta_t,G_prior_star,der_log_prior_star);
     der_log_p_y_star = der_log_p_y_star + (gamma_a-1)/gamma_star - gamma_b; %adding derivative of log prior to derivative of log likelihood
     p_mu_star  = gamma_star + 1/2*g_delta^2*(G_log_p_y_star\der_log_p_y_star);
     p_sig_star = (g_delta)^2/G_log_p_y_star;
@@ -318,7 +318,7 @@ for ss = 2:totalSamples
         if(exist('paramPlotFigure','var') && ~isempty(paramPlotFigure) && ishandle(paramPlotFigure))
             set(0,'CurrentFigure',paramPlotFigure);
         else
-            paramPlotFigure = figure(200, 'Visible', 'off');
+            paramPlotFigure = figure(200);
         end
         
         clf
@@ -388,11 +388,10 @@ for ss = 2:totalSamples
 %             plot([1 totalSamples],[1.0 1.0]*timeSeries.trueParams.gamma,'--')
 %         end
         hold off
-        print('-dpdf', '-r300', '200pdf');
         if(exist('latentStateFigure','var') && ~isempty(latentStateFigure) && ishandle(latentStateFigure))
             set(0,'CurrentFigure',latentStateFigure);
         else
-            latentStateFigure = figure(201, 'Visible', 'off');
+            latentStateFigure = figure(201);
         end
         clf
         hold on

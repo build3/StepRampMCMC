@@ -4,3 +4,7 @@
 *.mexa64
 *.o
 *.mat
+Samples/
+Results/
+temp/
+*.pdf
